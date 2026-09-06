@@ -1,0 +1,17 @@
+# Mesma imagem, configuracao diferente — e o que a regra 4.7 descreve como o
+# motivo de ConfigMap e Secret existirem.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nyx-api-config
+  namespace: nyx-dev
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-dev
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+data:
+  DB_HOST: nyx-postgres
+  DB_DATABASE: kubedevnews

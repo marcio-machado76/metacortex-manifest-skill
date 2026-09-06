@@ -1,0 +1,53 @@
+# Anti-padrao montado a partir dos proprios exemplos "errado" do padrao.
+#
+# Cada desvio aqui e transcricao literal de um bloco do wiki:
+#   regra 1.1  name: NyxAPI                    (nao esta em kebab-case)
+#   regra 1.4  selector app: nyx-api  x  labels do pod app: nyxapi
+#   regra 3.1  image ...:latest
+#   regra 3.3  DATABASE_URL com a senha no env.value
+#
+# Somam-se a esses os desvios por ausencia, que o wiki cobra mas nao ilustra:
+# faltam os quatro rotulos (1.3), as duas probes (2.2), requests e limits (2.1),
+# a segunda replica em prod (2.3), a estrategia de rollout (2.4) e o
+# securityContext inteiro (3.2).
+#
+# NAO APLIQUE. Este arquivo e o alvo da conferencia: e sobre ele que o
+# verificador e o trivy sao exercitados, e a saida de cada um vai para
+# evidencias/. Mexer nele invalida as evidencias.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: NyxAPI
+  namespace: nyx-prod
+  labels:
+    app: nyxapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nyxapi
+  template:
+    metadata:
+      labels:
+        app: nyxapi
+    spec:
+      containers:
+        - name: api
+          image: registry.metacortex.io/nyx/api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: "postgres://nyx:s3nh4-do-banco@pg.nyx-prod.svc:5432/nyx"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nyx-api
+  namespace: nyx-prod
+spec:
+  selector:
+    app: nyx-api
+  ports:
+    - port: 80
+      targetPort: 8080

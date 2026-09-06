@@ -1,0 +1,26 @@
+# Exclusoes do scan, cada uma com justificativa escrita — que e o que a secao
+# Excecoes do padrao exige de qualquer desvio.
+#
+# As duas abaixo nao sao desvio do padrao: sao o padrao e a ferramenta
+# discordando. Ambas estao registradas em docs/achados-sobre-o-padrao.md com a
+# correcao definitiva proposta.
+misconfigurations:
+  - id: KSV-0125
+    statement: >-
+      "untrusted registry". A regra 3.7 do padrao EXIGE que todo image: aponte
+      para registry.metacortex.io. O Trivy nao conhece o dominio do parque e
+      marca justamente o comportamento correto. Obedecer ao padrao gera este
+      achado. Correcao definitiva: registrar o dominio na lista de registries
+      confiaveis do check, na configuracao do pipeline. Ate la, ignorado aqui e
+      verificado por ferramentas/conferir-padrao.py, que sabe qual e o registry da casa.
+  - id: KSV-0020
+    statement: >-
+      "runs with UID <= 10000". Vale so para o container do Postgres, que roda
+      como UID 70 porque e esse o dono dos arquivos do banco na imagem alpine.
+      O exemplo da regra 3.2 usa runAsUser: 10001, que e ilustrativo e nao serve
+      para toda imagem. O que a regra exige de fato — runAsNonRoot: true — esta
+      atendido, e o PSA restricted do namespace confirma.
+  - id: KSV-0021
+    statement: >-
+      "runs with GID <= 10000". Mesmo caso do KSV-0020: GID 70 e o grupo dono
+      dos arquivos do Postgres na imagem alpine.

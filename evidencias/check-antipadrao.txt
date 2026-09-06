@@ -1,0 +1,18 @@
+ERRO  1.1  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — nome 'NyxAPI' nao esta em kebab-case
+ERRO  1.3  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — faltam os rotulos: app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/managed-by
+ERRO  1.3  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — template do pod sem os rotulos: app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/managed-by
+ERRO  2.3  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — replicas=1 em prod; o minimo e 2
+ERRO  2.4  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — prod exige strategy.type RollingUpdate
+ERRO  3.4  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — sem automountServiceAccountToken: false no pod
+ERRO  2.2  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI/api — sem readinessProbe
+ERRO  2.2  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI/api — sem livenessProbe
+ERRO  3.3  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI/api — env DATABASE_URL tem URL com credencial embutida
+ERRO  1.3  contraexemplo/nyx-api-fora-do-padrao.yaml:Service/nyx-api — faltam os rotulos: app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/managed-by
+ERRO  1.4  contraexemplo/nyx-api-fora-do-padrao.yaml:Service/nyx-api — seletor {'app': 'nyx-api'} nao casa com nenhum pod de 'nyx-prod'; o Service sobe e fica sem endpoint
+AVISO 1.5  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — sem anotacao metacortex.io/owner
+AVISO 3.5  contraexemplo/nyx-api-fora-do-padrao.yaml:Deployment/NyxAPI — usa a ServiceAccount default do namespace
+AVISO 1.5  contraexemplo/nyx-api-fora-do-padrao.yaml:Service/nyx-api — sem anotacao metacortex.io/owner
+
+2 objetos · 11 erro(s) · 3 aviso(s)
+Reprovado. Regra obrigatoria ou proibida so passa com aprovacao escrita de Seguranca & Compliance no PR, com prazo de validade.
+exit=1

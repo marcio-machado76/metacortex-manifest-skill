@@ -1,0 +1,239 @@
+2026-09-06T00:41:51-03:00	INFO	[misconfig] Misconfiguration scanning is enabled
+2026-09-06T00:41:51-03:00	INFO	[checks-client] Using existing checks from cache	path="/home/marcio/.cache/trivy/policy/content"
+2026-09-06T00:41:52-03:00	INFO	Detected config files	num=17
+
+Report Summary
+
+┌──────────────────────────────────────────┬────────────┬───────────────────┐
+│                  Target                  │    Type    │ Misconfigurations │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/00-namespace.yaml                │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/01-serviceaccount-api.yaml       │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/02-serviceaccount-postgres.yaml  │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/03-configmap-api.yaml            │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/10-api-deployment.yaml           │ kubernetes │         1         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/11-api-service.yaml              │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/20-postgres-statefulset.yaml     │ kubernetes │         3         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/21-postgres-service.yaml         │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/00-namespace.yaml               │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/01-serviceaccount-api.yaml      │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/02-serviceaccount-postgres.yaml │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/03-configmap-api.yaml           │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/10-api-deployment.yaml          │ kubernetes │         1         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/11-api-service.yaml             │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/12-api-pdb.yaml                 │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/20-postgres-statefulset.yaml    │ kubernetes │         3         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/21-postgres-service.yaml        │ kubernetes │         0         │
+└──────────────────────────────────────────┴────────────┴───────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+nyx-dev/10-api-deployment.yaml (kubernetes)
+===========================================
+Tests: 101 (SUCCESSES: 100, FAILURES: 1)
+Failures: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 1, HIGH: 0, CRITICAL: 0)
+
+KSV-0125 (MEDIUM): Container api in deployment nyx-api (namespace: nyx-dev) uses an image from an untrusted registry.
+════════════════════════════════════════
+Ensure that all containers use images only from trusted registry domains.
+
+See https://avd.aquasec.com/misconfig/ksv-0125
+────────────────────────────────────────
+ nyx-dev/10-api-deployment.yaml:56-92
+────────────────────────────────────────
+  56 ┌         - name: api
+  57 │           image: registry.metacortex.io/nyx/api:2.9.1
+  58 │           ports:
+  59 │             - name: http
+  60 │               containerPort: 8080
+  61 │           envFrom:
+  62 │             - configMapRef:
+  63 │                 name: nyx-api-config
+  64 └           env:
+  ..   
+────────────────────────────────────────
+
+
+
+nyx-dev/20-postgres-statefulset.yaml (kubernetes)
+=================================================
+Tests: 101 (SUCCESSES: 98, FAILURES: 3)
+Failures: 3 (UNKNOWN: 0, LOW: 2, MEDIUM: 1, HIGH: 0, CRITICAL: 0)
+
+KSV-0020 (LOW): Container 'postgres' of StatefulSet 'nyx-postgres' should set 'securityContext.runAsUser' > 10000
+════════════════════════════════════════
+Force the container to run with user ID > 10000 to avoid conflicts with the host’s user table.
+
+See https://avd.aquasec.com/misconfig/ksv-0020
+────────────────────────────────────────
+ nyx-dev/20-postgres-statefulset.yaml:43-81
+────────────────────────────────────────
+  43 ┌         - name: postgres
+  44 │           image: registry.metacortex.io/nyx/postgres:16-alpine
+  45 │           ports:
+  46 │             - name: postgres
+  47 │               containerPort: 5432
+  48 │           env:
+  49 │             - name: POSTGRES_DB
+  50 │               valueFrom:
+  51 └                 configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+  ..   
+────────────────────────────────────────
+
+
+KSV-0021 (LOW): Container 'postgres' of StatefulSet 'nyx-postgres' should set 'securityContext.runAsGroup' > 10000
+════════════════════════════════════════
+Force the container to run with group ID > 10000 to avoid conflicts with the host’s user table.
+
+See https://avd.aquasec.com/misconfig/ksv-0021
+────────────────────────────────────────
+ nyx-dev/20-postgres-statefulset.yaml:43-81
+────────────────────────────────────────
+  43 ┌         - name: postgres
+  44 │           image: registry.metacortex.io/nyx/postgres:16-alpine
+  45 │           ports:
+  46 │             - name: postgres
+  47 │               containerPort: 5432
+  48 │           env:
+  49 │             - name: POSTGRES_DB
+  50 │               valueFrom:
+  51 └                 configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+  ..   
+────────────────────────────────────────
+
+
+KSV-0125 (MEDIUM): Container postgres in statefulset nyx-postgres (namespace: nyx-dev) uses an image from an untrusted registry.
+════════════════════════════════════════
+Ensure that all containers use images only from trusted registry domains.
+
+See https://avd.aquasec.com/misconfig/ksv-0125
+────────────────────────────────────────
+ nyx-dev/20-postgres-statefulset.yaml:43-81
+────────────────────────────────────────
+  43 ┌         - name: postgres
+  44 │           image: registry.metacortex.io/nyx/postgres:16-alpine
+  45 │           ports:
+  46 │             - name: postgres
+  47 │               containerPort: 5432
+  48 │           env:
+  49 │             - name: POSTGRES_DB
+  50 │               valueFrom:
+  51 └                 configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+  ..   
+────────────────────────────────────────
+
+
+
+nyx-prod/10-api-deployment.yaml (kubernetes)
+============================================
+Tests: 101 (SUCCESSES: 100, FAILURES: 1)
+Failures: 1 (UNKNOWN: 0, LOW: 0, MEDIUM: 1, HIGH: 0, CRITICAL: 0)
+
+KSV-0125 (MEDIUM): Container api in deployment nyx-api (namespace: nyx-prod) uses an image from an untrusted registry.
+════════════════════════════════════════
+Ensure that all containers use images only from trusted registry domains.
+
+See https://avd.aquasec.com/misconfig/ksv-0125
+────────────────────────────────────────
+ nyx-prod/10-api-deployment.yaml:74-113
+────────────────────────────────────────
+  74 ┌         - name: api                         # regra 1.6 — o componente, nao "app"
+  75 │           image: registry.metacortex.io/nyx/api:2.9.1   # regras 3.1 e 3.7
+  76 │           ports:
+  77 │             - name: http
+  78 │               containerPort: 8080
+  79 │           envFrom:
+  80 │             - configMapRef:
+  81 │                 name: nyx-api-config
+  82 └           env:
+  ..   
+────────────────────────────────────────
+
+
+
+nyx-prod/20-postgres-statefulset.yaml (kubernetes)
+==================================================
+Tests: 101 (SUCCESSES: 98, FAILURES: 3)
+Failures: 3 (UNKNOWN: 0, LOW: 2, MEDIUM: 1, HIGH: 0, CRITICAL: 0)
+
+KSV-0020 (LOW): Container 'postgres' of StatefulSet 'nyx-postgres' should set 'securityContext.runAsUser' > 10000
+════════════════════════════════════════
+Force the container to run with user ID > 10000 to avoid conflicts with the host’s user table.
+
+See https://avd.aquasec.com/misconfig/ksv-0020
+────────────────────────────────────────
+ nyx-prod/20-postgres-statefulset.yaml:56-99
+────────────────────────────────────────
+  56 ┌         - name: postgres                     # regra 1.6
+  57 │           image: registry.metacortex.io/nyx/postgres:16-alpine
+  58 │           ports:
+  59 │             - name: postgres
+  60 │               containerPort: 5432
+  61 │           env:
+  62 │             - name: POSTGRES_DB
+  63 │               valueFrom:
+  64 └                 configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+  ..   
+────────────────────────────────────────
+
+
+KSV-0021 (LOW): Container 'postgres' of StatefulSet 'nyx-postgres' should set 'securityContext.runAsGroup' > 10000
+════════════════════════════════════════
+Force the container to run with group ID > 10000 to avoid conflicts with the host’s user table.
+
+See https://avd.aquasec.com/misconfig/ksv-0021
+────────────────────────────────────────
+ nyx-prod/20-postgres-statefulset.yaml:56-99
+────────────────────────────────────────
+  56 ┌         - name: postgres                     # regra 1.6
+  57 │           image: registry.metacortex.io/nyx/postgres:16-alpine
+  58 │           ports:
+  59 │             - name: postgres
+  60 │               containerPort: 5432
+  61 │           env:
+  62 │             - name: POSTGRES_DB
+  63 │               valueFrom:
+  64 └                 configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+  ..   
+────────────────────────────────────────
+
+
+KSV-0125 (MEDIUM): Container postgres in statefulset nyx-postgres (namespace: nyx-prod) uses an image from an untrusted registry.
+════════════════════════════════════════
+Ensure that all containers use images only from trusted registry domains.
+
+See https://avd.aquasec.com/misconfig/ksv-0125
+────────────────────────────────────────
+ nyx-prod/20-postgres-statefulset.yaml:56-99
+────────────────────────────────────────
+  56 ┌         - name: postgres                     # regra 1.6
+  57 │           image: registry.metacortex.io/nyx/postgres:16-alpine
+  58 │           ports:
+  59 │             - name: postgres
+  60 │               containerPort: 5432
+  61 │           env:
+  62 │             - name: POSTGRES_DB
+  63 │               valueFrom:
+  64 └                 configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+  ..   
+────────────────────────────────────────
+
+

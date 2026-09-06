@@ -1,0 +1,19 @@
+# O Construct so cria namespace no formato <cliente>-<ambiente> (regra 1.2).
+#
+# Os dois rotulos pod-security nao aparecem no padrao. Entraram porque deslocam
+# a aplicacao do Bloco 3 da revisao de PR para a admissao do apiserver: o pod que
+# desrespeitar a regra 3.2 ou a 3.6 nem chega a ser criado. Regra escrita depende
+# de alguem reparar; regra assim nao depende.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nyx-prod
+  labels:
+    app.kubernetes.io/name: nyx
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+  annotations:
+    metacortex.io/owner: plataforma

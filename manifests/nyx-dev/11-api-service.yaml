@@ -1,0 +1,34 @@
+# Regra 1.4, e o unico lugar do par onde o erro passa despercebido.
+#
+# Um `matchLabels` divergente do template e recusado pelo apiserver na hora. Ja o
+# seletor abaixo nao e conferido contra nada: se ele nao encontrar pod nenhum, o
+# Service e criado normalmente e fica sem destino, servindo respostas vazias sem
+# que nada no cluster reclame. Por isso ferramentas/conferir-padrao.py cruza este
+# seletor com os rotulos dos pods do namespace — e por isso ele esta escrito com
+# as mesmas duas chaves do `matchLabels` do Deployment.
+#
+# Regra 4.5: `port` e por onde outro servico chama (http://nyx-api:80) e
+# `targetPort` e a porta do container. Apontar para o nome `http` em vez do
+# numero deixa a troca de porta num arquivo so.
+apiVersion: v1
+kind: Service
+metadata:
+  name: nyx-api
+  namespace: nyx-dev
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-dev
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-dev
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

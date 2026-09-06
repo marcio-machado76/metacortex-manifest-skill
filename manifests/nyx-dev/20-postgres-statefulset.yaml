@@ -1,0 +1,99 @@
+# nyx-postgres em dev. Aqui replicas: 1 nao e excecao a regra 2.3 — a regra so
+# cobra duas replicas em prod. E o mesmo numero, com estatuto diferente: em
+# nyx-prod ele precisa de aprovacao escrita, aqui nao precisa de nada.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nyx-postgres
+  namespace: nyx-dev
+  labels:
+    app.kubernetes.io/name: nyx-postgres
+    app.kubernetes.io/instance: nyx-dev
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+    metacortex.io/runbook: https://wiki.metacortex.io/runbooks/nyx-postgres
+spec:
+  serviceName: nyx-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-postgres
+      app.kubernetes.io/instance: nyx-dev
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nyx-postgres
+        app.kubernetes.io/instance: nyx-dev
+        app.kubernetes.io/part-of: nyx
+        app.kubernetes.io/managed-by: platform
+    spec:
+      serviceAccountName: nyx-postgres
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres
+          image: registry.metacortex.io/nyx/postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: username}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: password}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          resources:
+            requests: {cpu: 50m,  memory: 128Mi}
+            limits:   {cpu: 500m, memory: 384Mi}
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "kubedevnews", "-d", "kubedevnews"]
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket: {port: postgres}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - {name: dados, mountPath: /var/lib/postgresql/data}
+            - {name: run,   mountPath: /var/run/postgresql}
+            - {name: tmp,   mountPath: /tmp}
+      volumes:
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: dados
+        labels:
+          app.kubernetes.io/name: nyx-postgres
+          app.kubernetes.io/instance: nyx-dev
+          app.kubernetes.io/part-of: nyx
+          app.kubernetes.io/managed-by: platform
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

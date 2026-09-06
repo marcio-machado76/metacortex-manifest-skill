@@ -1,0 +1,95 @@
+# nyx-api em dev.
+#
+# Vale ler junto com manifests/nyx-prod/10-api-deployment.yaml: as diferencas
+# entre os dois arquivos sao exatamente as que o padrao autoriza — contagem de
+# replicas (2.3), folga no rollout (2.4), tamanho dos recursos e o rotulo
+# `instance`. Blocos 1 e 3 estao identicos, e as duas probes continuam aqui
+# porque a 2.2 vale "em qualquer ambiente".
+#
+# Afrouxar seguranca em dev e o caminho mais comum para o desvio chegar em prod:
+# alguem copia o manifesto que ja existe.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nyx-api
+  namespace: nyx-dev
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-dev
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+    metacortex.io/runbook: https://wiki.metacortex.io/runbooks/nyx-api
+spec:
+  replicas: 1                       # regra 2.3 — aceitavel fora de prod
+  strategy:                         # regra 2.4 cobra maxUnavailable: 0 so em prod
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-api
+      app.kubernetes.io/instance: nyx-dev
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nyx-api
+        app.kubernetes.io/instance: nyx-dev
+        app.kubernetes.io/part-of: nyx
+        app.kubernetes.io/managed-by: platform
+      annotations:
+        metacortex.io/owner: squad-nyx
+    spec:
+      serviceAccountName: nyx-api
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:                    # regra 3.2 — nivel de pod
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: registry.metacortex.io/nyx/api:2.9.1
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: nyx-api-config
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: username}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: password}
+          resources:                      # regra 2.1 — menor que prod, presente
+            requests: {cpu: 50m,  memory: 128Mi}
+            limits:   {cpu: 250m, memory: 256Mi}
+          startupProbe:
+            httpGet: {path: /health, port: http}
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:                 # regra 2.2 — "em qualquer ambiente"
+            httpGet: {path: /ready, port: http}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: {path: /health, port: http}
+            periodSeconds: 20
+            timeoutSeconds: 3
+          securityContext:                # regra 3.2 — nivel de container
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: tmp
+          emptyDir: {}
