@@ -28,7 +28,7 @@ A revisão coberta é a de **2026-07-29**, preservada em
 | `ferramentas/validar.sh` | Executa a bateria completa; é o que a CI chama |
 | `.trivyignore.yaml` | Os dois pontos em que a varredura e o padrão discordam, com justificativa escrita |
 | `laboratorio/` | Cluster kind e o registry interno que faz `registry.metacortex.io` existir |
-| `evidencias/` | Saída bruta de cada execução, sem edição |
+| `evidencias/` | Saída bruta de cada execução; a única edição é o `$HOME` no lugar do caminho pessoal |
 | `docs/cobertura-das-regras.md` | Regra a regra: quem responde por ela e por quê |
 | `docs/achados-sobre-o-padrao.md` | Oito pontos em que o padrão não produz o resultado que promete |
 
