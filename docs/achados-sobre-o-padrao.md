@@ -195,11 +195,18 @@ sem estado, e escrever uma regra separada para banco e afins.
 
 ## 7 · Nada trata de dependência que falha na inicialização
 
-Nos dois ambientes, o primeiro start da API termina em `CrashLoopBackOff`:
+No primeiro start da API o processo termina em `CrashLoopBackOff`:
 
 ```
 Error: getaddrinfo EAI_AGAIN nyx-postgres
 ```
+
+O rastro está em `evidencias/cluster-nyx.txt`: em `nyx-stg`, a réplica
+`nyx-api-5c5589df99-gk7pn` acumula duas reinicializações aos 78s de vida,
+enquanto a outra réplica, do mesmo Deployment e da mesma idade, tem zero. A
+diferença é em qual nó o pod caiu antes de o `nyx-postgres` ficar pronto. A
+mensagem acima foi lida com `kubectl logs --previous` durante a execução e não
+está transcrita nas evidências.
 
 O DNS de um Service só publica endereço de pod pronto. A aplicação resolve o
 banco durante a subida, não encontra, e encerra o processo em vez de tentar de
