@@ -1,0 +1,25 @@
+# nyx-stg — o ambiente onde as regras de prod sao exercitadas antes de prod.
+#
+# A regra 2.3 diz que "em dev e stg, uma replica e aceitavel". Aceitavel, nao
+# obrigatorio: o padrao poe um piso em prod, nao um teto em stg.
+#
+# Este ambiente escolhe deliberadamente a postura de producao — duas replicas,
+# rollout sem queda de capacidade e PDB. O motivo e que stg existe para ensaiar o
+# que vai para prod, e um stg modelado como dev deixa exatamente as tres regras
+# exclusivas de prod (2.3, 2.4 e 2.5) sem nenhum ensaio: a primeira vez que elas
+# valem de verdade e no dia do deploy de producao.
+#
+# A comparacao entre os tres ambientes esta em docs/cobertura-das-regras.md.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nyx-stg
+  labels:
+    app.kubernetes.io/name: nyx
+    app.kubernetes.io/instance: nyx-stg
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+  annotations:
+    metacortex.io/owner: plataforma

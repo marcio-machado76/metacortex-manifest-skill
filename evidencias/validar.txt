@@ -1,0 +1,82 @@
+
+== 1/4  verificador do padrao em manifests/
+
+26 objetos · 0 erro(s) · 0 aviso(s)
+OK — nenhum desvio.
+
+== 2/4  trivy config em manifests/
+2026-09-06T01:03:47-03:00	INFO	[misconfig] Misconfiguration scanning is enabled
+2026-09-06T01:03:47-03:00	INFO	[checks-client] Using existing checks from cache	path="/home/marcio/.cache/trivy/policy/content"
+2026-09-06T01:03:48-03:00	INFO	Detected config files	num=26
+
+Report Summary
+
+┌──────────────────────────────────────────┬────────────┬───────────────────┐
+│                  Target                  │    Type    │ Misconfigurations │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/00-namespace.yaml                │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/01-serviceaccount-api.yaml       │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/02-serviceaccount-postgres.yaml  │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/03-configmap-api.yaml            │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/10-api-deployment.yaml           │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/11-api-service.yaml              │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/20-postgres-statefulset.yaml     │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-dev/21-postgres-service.yaml         │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/00-namespace.yaml               │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/01-serviceaccount-api.yaml      │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/02-serviceaccount-postgres.yaml │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/03-configmap-api.yaml           │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/10-api-deployment.yaml          │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/11-api-service.yaml             │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/12-api-pdb.yaml                 │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/20-postgres-statefulset.yaml    │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-prod/21-postgres-service.yaml        │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/00-namespace.yaml                │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/01-serviceaccount-api.yaml       │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/02-serviceaccount-postgres.yaml  │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/03-configmap-api.yaml            │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/10-api-deployment.yaml           │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/11-api-service.yaml              │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/12-api-pdb.yaml                  │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/20-postgres-statefulset.yaml     │ kubernetes │         0         │
+├──────────────────────────────────────────┼────────────┼───────────────────┤
+│ nyx-stg/21-postgres-service.yaml         │ kubernetes │         0         │
+└──────────────────────────────────────────┴────────────┴───────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+OK — nenhum achado alem dos ignorados com justificativa.
+
+== 3/4  teste negativo: o contraexemplo tem que reprovar
+OK — reprovou, como esperado.
+
+== 4/4  cobertura: as 19 regras do padrao estao todas enderecadas
+OK — as 19 regras aparecem em docs/cobertura-das-regras.md.
+
+== resultado
+Tudo passou. Pode abrir o PR.

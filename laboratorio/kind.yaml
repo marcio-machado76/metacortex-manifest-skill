@@ -1,0 +1,23 @@
+# Cluster de laboratorio do parque da Metacortex.
+#
+# containerdConfigPatches liga o config_path do containerd, que e onde
+# subir.sh escreve o hosts.toml que resolve registry.metacortex.io para o
+# registry local. E o papel do Loom na ficcao: imagem publica entra, e sai
+# republicada no registry interno. Sem isso, manifesto que obedece a regra 3.7
+# nao consegue baixar imagem nenhuma fora do parque.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: metacortex
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "/etc/containerd/certs.d"
+nodes:
+  # Dois workers para que replicas>=2 (regra 2.3) e PDB (regra 2.5) tenham
+  # onde se espalhar, e para que drain de no seja demonstravel.
+  - role: control-plane
+    image: kindest/node:v1.31.0
+  - role: worker
+    image: kindest/node:v1.31.0
+  - role: worker
+    image: kindest/node:v1.31.0

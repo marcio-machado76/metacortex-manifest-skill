@@ -1,0 +1,55 @@
+# Evidencia de cluster — nyx-prod, nyx-stg e nyx-dev conformes ao padrao
+# kind v0.24.0 / Kubernetes v1.31.0 / 3 nos / PSA restricted nos tres namespaces
+# coletado em 2026-09-06T04:03:48Z
+
+$ kubectl get pods -A -l app.kubernetes.io/part-of=nyx -o wide
+NAMESPACE   NAME                       READY   STATUS    RESTARTS      AGE   IP            NODE                 NOMINATED NODE   READINESS GATES
+nyx-dev     nyx-api-55c569968-77dd2    1/1     Running   0             43m   10.244.1.6    metacortex-worker2   <none>           <none>
+nyx-dev     nyx-postgres-0             1/1     Running   0             44m   10.244.1.5    metacortex-worker2   <none>           <none>
+nyx-prod    nyx-api-5cf6449d4f-2g94n   1/1     Running   0             53m   10.244.2.5    metacortex-worker    <none>           <none>
+nyx-prod    nyx-api-5cf6449d4f-m4k4c   1/1     Running   0             53m   10.244.1.3    metacortex-worker2   <none>           <none>
+nyx-prod    nyx-postgres-0             1/1     Running   0             53m   10.244.2.4    metacortex-worker    <none>           <none>
+nyx-stg     nyx-api-5c5589df99-7zz6j   1/1     Running   0             78s   10.244.2.10   metacortex-worker    <none>           <none>
+nyx-stg     nyx-api-5c5589df99-gk7pn   1/1     Running   2 (65s ago)   78s   10.244.1.8    metacortex-worker2   <none>           <none>
+nyx-stg     nyx-postgres-0             1/1     Running   0             85s   10.244.2.9    metacortex-worker    <none>           <none>
+
+# Regras 2.3, 2.4 e 2.5 — o que separa os ambientes
+$ kubectl get deploy -A -l app.kubernetes.io/name=nyx-api -o custom-columns=...
+NAMESPACE   REPLICAS   MAXUNAVAIL
+nyx-dev     1          1
+nyx-prod    2          0
+nyx-stg     2          0
+
+$ kubectl get pdb -A
+NAMESPACE   NAME      MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+nyx-prod    nyx-api   1               N/A               1                     55m
+nyx-stg     nyx-api   1               N/A               1                     85s
+
+# Regra 1.4 — todo Service encontrou seus pods
+nyx-prod  ["10.244.1.3"] ["10.244.2.5"]
+nyx-stg   ["10.244.1.8"] ["10.244.2.10"]
+nyx-dev   ["10.244.1.6"]
+
+# Regra 3.2 — securityContext efetivo (pod e container)
+{
+    "fsGroup": 10001,
+    "runAsGroup": 10001,
+    "runAsNonRoot": true,
+    "runAsUser": 10001,
+    "seccompProfile": {
+        "type": "RuntimeDefault"
+    }
+}
+{
+    "allowPrivilegeEscalation": false,
+    "capabilities": {
+        "drop": [
+            "ALL"
+        ]
+    },
+    "readOnlyRootFilesystem": true
+}
+
+# Regra 3.7 — imagens em uso, todas do registry do parque
+registry.metacortex.io/nyx/api:2.9.1
+registry.metacortex.io/nyx/postgres:16-alpine

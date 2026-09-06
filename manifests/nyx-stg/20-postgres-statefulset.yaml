@@ -1,0 +1,116 @@
+# nyx-postgres — o banco que a regra 3.3 pressupoe quando manda a credencial vir
+# por secretKeyRef.
+#
+# Duas tensoes com o padrao, ambas registradas em docs/achados-sobre-o-padrao.md:
+#
+#  1. E StatefulSet, e o padrao nao tem vocabulario para isso. A regra 1.3
+#     enumera "Deployment, Service, ConfigMap, Secret, Job, CronJob" e a 4.3 diz
+#     que Deployment e para aplicacao sem estado. Banco nao cabe em nenhum dos
+#     dois. Os quatro rotulos foram aplicados assim mesmo, pelo espirito da regra.
+#
+#  2. replicas: 1 em prod contraria a regra 2.3, que e obrigatoria. Postgres de
+#     escrita unica nao se resolve subindo uma segunda replica — duas instancias
+#     com volumes proprios sao dois bancos, nao alta disponibilidade. Isso e
+#     excecao a regra obrigatoria e, pelo que a secao Excecoes do padrao exige,
+#     precisa de aprovacao escrita de Seguranca & Compliance no PR com prazo.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nyx-postgres
+  namespace: nyx-stg
+  labels:
+    app.kubernetes.io/name: nyx-postgres
+    app.kubernetes.io/instance: nyx-stg
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+    metacortex.io/runbook: https://wiki.metacortex.io/runbooks/nyx-postgres
+spec:
+  serviceName: nyx-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-postgres
+      app.kubernetes.io/instance: nyx-stg
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nyx-postgres
+        app.kubernetes.io/instance: nyx-stg
+        app.kubernetes.io/part-of: nyx
+        app.kubernetes.io/managed-by: platform
+    spec:
+      serviceAccountName: nyx-postgres
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 60      # regra 2.6 — shutdown limpo do banco
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70                        # postgres na imagem alpine
+        runAsGroup: 70
+        fsGroup: 70
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres                     # regra 1.6
+          image: registry.metacortex.io/nyx/postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: {name: nyx-api-config, key: DB_DATABASE}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: username}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: password}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits:   {cpu: 1000m, memory: 512Mi}
+          # Regra 2.2, e o caso em que a distincao dela mais importa. readiness
+          # usa pg_isready: "aceito conexao agora?". liveness so confere que o
+          # processo escuta na porta. Apontar a liveness para pg_isready faria o
+          # kubelet reiniciar o banco justamente enquanto ele esta em recovery e
+          # recusando conexao — que e o modo de falha que a regra 2.2 descreve.
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "kubedevnews", "-d", "kubedevnews"]
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket: {port: postgres}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - {name: dados,   mountPath: /var/lib/postgresql/data}
+            - {name: run,     mountPath: /var/run/postgresql}
+            - {name: tmp,     mountPath: /tmp}
+      volumes:
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: dados
+        labels:
+          app.kubernetes.io/name: nyx-postgres
+          app.kubernetes.io/instance: nyx-stg
+          app.kubernetes.io/part-of: nyx
+          app.kubernetes.io/managed-by: platform
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

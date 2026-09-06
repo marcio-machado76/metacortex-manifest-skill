@@ -1,0 +1,4 @@
+# saida local de ferramenta; as evidencias versionadas ficam em evidencias/
+*.tmp
+.trivycache/
+kubeconfig-*

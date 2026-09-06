@@ -1,0 +1,106 @@
+# nyx-api em stg.
+#
+# Identico a manifests/nyx-prod/10-api-deployment.yaml exceto pelo rotulo
+# `instance` e pelo namespace. E de proposito: e o que permite que um rollout
+# testado aqui signifique alguma coisa la.
+#
+# As decisoes de fundo — seletor com rotulos imutaveis, securityContext partido
+# entre pod e container, distribuicao por no — estao explicadas no arquivo
+# correspondente de nyx-prod, para nao duplicar a justificativa.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nyx-api
+  namespace: nyx-stg
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-stg
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+    metacortex.io/runbook: https://wiki.metacortex.io/runbooks/nyx-api
+spec:
+  replicas: 2                       # regra 2.3 — prod nunca com replica unica
+  strategy:                         # regra 2.4 — capacidade nao cai no rollout
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-api
+      app.kubernetes.io/instance: nyx-stg
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nyx-api
+        app.kubernetes.io/instance: nyx-stg
+        app.kubernetes.io/part-of: nyx
+        app.kubernetes.io/managed-by: platform
+      annotations:
+        metacortex.io/owner: squad-nyx
+    spec:
+      serviceAccountName: nyx-api
+      automountServiceAccountToken: false   # regra 3.4 — nao fala com o apiserver
+      terminationGracePeriodSeconds: 30     # regra 2.6 — API HTTP curta, 30s basta
+      securityContext:                      # regra 3.2 — nivel de pod
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      # Ver decisao 3 no cabecalho: a 2.3 conta replicas, nao diz onde elas caem.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: nyx-api
+              app.kubernetes.io/instance: nyx-stg
+      containers:
+        - name: api                         # regra 1.6 — o componente, nao "app"
+          image: registry.metacortex.io/nyx/api:2.9.1   # regras 3.1 e 3.7
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: nyx-api-config
+          env:
+            # regra 3.3 — credencial so por referencia. O Secret nyx-db nao esta
+            # versionado; e criado pelo cofre da plataforma antes do deploy.
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: username}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: nyx-db, key: password}
+          resources:                        # regra 2.1
+            requests: {cpu: 100m, memory: 128Mi}
+            limits:   {cpu: 500m, memory: 256Mi}
+          startupProbe:                     # carencia antes da liveness contar
+            httpGet: {path: /health, port: http}
+            periodSeconds: 5
+            failureThreshold: 12
+          readinessProbe:                   # "posso receber trafego agora?"
+            httpGet: {path: /ready, port: http}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:                    # "ainda estou vivo?"
+            httpGet: {path: /health, port: http}
+            periodSeconds: 20
+            timeoutSeconds: 3
+          securityContext:                  # regra 3.2 — nivel de container
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          # readOnlyRootFilesystem exige caminho gravavel declarado (regra 3.2)
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: tmp
+          emptyDir: {}

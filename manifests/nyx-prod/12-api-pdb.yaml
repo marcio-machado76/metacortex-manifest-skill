@@ -1,0 +1,25 @@
+# Regra 2.5. O PDB declara quantas replicas precisam sobreviver a uma operacao
+# planejada — `minAvailable: 1` e o piso que o padrao pede.
+#
+# O escopo dele e estreito e vale saber qual: o PDB e consultado quando alguem
+# drena um no de proposito. Ele nao opina sobre onde o escalonador colocou as
+# replicas, entao nao substitui o `topologySpreadConstraints` que esta no
+# Deployment — os dois cobrem metades diferentes do mesmo risco.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nyx-api
+  namespace: nyx-prod
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-api
+      app.kubernetes.io/instance: nyx-prod

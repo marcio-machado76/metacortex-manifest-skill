@@ -1,0 +1,25 @@
+# Regra 2.5. Recomendada em prod, adotada aqui pelo mesmo motivo que o resto do
+# ambiente espelha producao: PDB que nunca foi exercitado e PDB que ninguem sabe
+# se esta certo.
+#
+# Com duas replicas e `minAvailable: 1`, drenar um no continua possivel — o
+# objeto protege sem travar manutencao, que e o comportamento que se quer ver
+# antes de depender dele em prod.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nyx-api
+  namespace: nyx-stg
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-stg
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-api
+      app.kubernetes.io/instance: nyx-stg

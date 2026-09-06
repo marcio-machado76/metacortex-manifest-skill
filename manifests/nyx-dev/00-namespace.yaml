@@ -1,0 +1,25 @@
+# nyx-dev — o mesmo componente de nyx-prod, mudando so o que o padrao deixa mudar.
+#
+# O que muda por ambiente, e por que:
+#   2.3  replicas: 1        — "em dev e stg, uma replica e aceitavel"
+#   2.4  estrategia         — obrigatoria so em prod; aqui vale a folga
+#   2.5  PDB                — recomendado so em prod. Com uma replica, um PDB de
+#                             minAvailable: 1 bloquearia qualquer drain de no,
+#                             que e o oposto do que a regra quer
+#
+# O que NAO muda: todo o Bloco 1 e todo o Bloco 3 valem "em qualquer ambiente",
+# e a regra 2.2 diz isso com todas as letras sobre as probes. Baixar a guarda de
+# seguranca em dev e como o desvio chega em prod.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nyx-dev
+  labels:
+    app.kubernetes.io/name: nyx
+    app.kubernetes.io/instance: nyx-dev
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+  annotations:
+    metacortex.io/owner: plataforma

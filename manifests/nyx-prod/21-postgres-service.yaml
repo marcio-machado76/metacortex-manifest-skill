@@ -1,0 +1,28 @@
+# Service headless que governa o StatefulSet. Como ha uma replica so, o nome
+# nyx-postgres.nyx-prod.svc resolve direto para o pod do banco — que e o
+# DB_HOST que 03-configmap-api.yaml entrega para a aplicacao.
+#
+# Regra 1.4 — seletor identico aos rotulos do template do StatefulSet.
+apiVersion: v1
+kind: Service
+metadata:
+  name: nyx-postgres
+  namespace: nyx-prod
+  labels:
+    app.kubernetes.io/name: nyx-postgres
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: nyx-postgres
+    app.kubernetes.io/instance: nyx-prod
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+      protocol: TCP
