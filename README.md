@@ -1,4 +1,4 @@
-# metacortex-manifest-skill
+# metacortex-padrao-manifests
 
 O **Padrão de Manifests da Metacortex** já existe e está escrito — e mesmo assim
 manifesto torto continua chegando na revisão. Uma página de wiki é boa para
