@@ -6,8 +6,8 @@ guardar decisão; é ruim para conferir regra a regra no meio de uma tarefa.
 
 Este repositório transforma aquela página em três coisas que ela não consegue ser:
 
-1. **Um par de ambientes que cumpre as 19 regras** e sobe num cluster de verdade,
-   para copiar em vez de reler.
+1. **Três ambientes (dev, stg, prod) que cumprem as 19 regras** e sobem num
+   cluster de verdade, para copiar em vez de reler.
 2. **Um conferidor** que reprova o que dá para reprovar por máquina — e que sabe
    exatamente onde parar, porque o limite foi medido e não estimado.
 3. **Um relatório do que aconteceu** quando o texto do padrão foi aplicado ao pé
