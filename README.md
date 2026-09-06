@@ -53,8 +53,19 @@ A etapa 3 existe porque conferidor que nunca reprova nada é indistinguível de
 conferidor quebrado. Se alguém mexer numa regra de detecção e ela parar de
 disparar, é aqui que aparece — e não seis meses depois, num incidente.
 
-A CI em `.github/workflows/padrao.yml` chama esse mesmo script. Se algum dia as
-duas divergirem, o script é a versão correta; a CI só o executa.
+Sem o Trivy instalado, a etapa 2 avisa e as outras três seguem — quem está
+começando não fica travado. Só que numa esteira automatizada esse silêncio é
+perigoso: uma instalação que falhasse deixaria a validação passar verde com as
+regras 2.1, 3.1, 3.2 e 3.6 sem ninguém por elas. Por isso existe
+`TRIVY_OBRIGATORIO=1`, que transforma a ausência em reprovação:
+
+```bash
+TRIVY_OBRIGATORIO=1 bash ferramentas/validar.sh
+```
+
+A CI em `.github/workflows/padrao.yml` chama esse mesmo script com a variável
+ligada. Se algum dia as duas divergirem, o script é a versão correta; a CI só o
+executa.
 
 ## Rodando no laboratório
 

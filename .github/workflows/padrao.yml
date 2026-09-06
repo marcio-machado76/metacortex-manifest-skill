@@ -27,4 +27,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: validar
+        # Sem isto, trivy que falhe ao instalar deixaria a validacao passar
+        # verde com quatro regras do padrao sem conferencia nenhuma.
+        env:
+          TRIVY_OBRIGATORIO: "1"
         run: bash ferramentas/validar.sh

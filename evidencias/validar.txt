@@ -5,9 +5,9 @@
 OK — nenhum desvio.
 
 == 2/4  trivy config em manifests/
-2026-09-06T00:47:19-03:00	INFO	[misconfig] Misconfiguration scanning is enabled
-2026-09-06T00:47:19-03:00	INFO	[checks-client] Using existing checks from cache	path="/home/marcio/.cache/trivy/policy/content"
-2026-09-06T00:47:20-03:00	INFO	Detected config files	num=17
+2026-09-06T00:55:35-03:00	INFO	[misconfig] Misconfiguration scanning is enabled
+2026-09-06T00:55:35-03:00	INFO	[checks-client] Using existing checks from cache	path="/home/marcio/.cache/trivy/policy/content"
+2026-09-06T00:55:36-03:00	INFO	Detected config files	num=17
 
 Report Summary
 

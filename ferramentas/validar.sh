@@ -31,10 +31,19 @@ if command -v trivy >/dev/null 2>&1; then
     echo "FALHOU — o scan encontrou achado nao justificado."
     FALHOU=1
   fi
+elif [ "${TRIVY_OBRIGATORIO:-0}" = "1" ]; then
+  echo "FALHOU — trivy ausente, e TRIVY_OBRIGATORIO=1 nesta execucao."
+  echo "  Sem o scan, as regras 2.1, 3.1, 3.2 e 3.6 ficam sem ninguem por elas."
+  echo "  Passar verde assim seria dizer que o manifesto foi conferido quando"
+  echo "  um quinto do padrao nao foi olhado."
+  FALHOU=1
 else
-  echo "PULADO — trivy nao instalado."
-  echo "  curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \\"
-  echo "    | sh -s -- -b \"\$HOME/.local/bin\""
+  echo "PULADO — trivy nao instalado; as outras etapas seguem."
+  echo "  Instale com:"
+  echo "    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \\"
+  echo "      | sh -s -- -b \"\$HOME/.local/bin\""
+  echo "  Em ambiente onde o scan e obrigatorio — a CI, por exemplo — defina"
+  echo "  TRIVY_OBRIGATORIO=1 e esta ausencia vira falha."
 fi
 
 titulo "3/4  teste negativo: o contraexemplo tem que reprovar"
