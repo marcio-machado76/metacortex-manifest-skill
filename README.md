@@ -20,8 +20,9 @@ A revisão coberta é a de **2026-07-29**, preservada em
 
 | Caminho | O que é |
 | --- | --- |
-| `manifests/nyx-prod/` | Ambiente de produção do cliente nyx: API HTTP e banco, conformes ao padrão |
-| `manifests/nyx-dev/` | O mesmo par em dev, alterando só o que o padrão autoriza alterar |
+| `manifests/nyx-prod/` | Produção do cliente nyx: API HTTP e banco, cumprindo as 19 regras |
+| `manifests/nyx-stg/` | Homologação, espelhando a postura de produção — ver abaixo |
+| `manifests/nyx-dev/` | Desenvolvimento, no mínimo que o padrão autoriza |
 | `contraexemplo/` | Um manifesto fora do padrão, montado com os exemplos "errado" do próprio wiki. Não aplique — ele é alvo, não modelo |
 | `ferramentas/conferir-padrao.py` | Confere as regras que a varredura do pipeline não conhece |
 | `ferramentas/validar.sh` | Executa a bateria completa; é o que a CI chama |
@@ -34,6 +35,27 @@ A revisão coberta é a de **2026-07-29**, preservada em
 Dentro de cada ambiente os arquivos são numerados na ordem em que precisam ser
 aplicados — namespace, contas, configuração, workloads, exposição. Um
 `kubectl apply -f manifests/nyx-prod/` respeita essa ordem sem ajuda.
+
+### Por que `stg` não é uma cópia de `dev`
+
+Só três regras distinguem ambiente, e as três separam produção do resto: a 2.3
+(duas réplicas), a 2.4 (rollout sem queda de capacidade) e a 2.5 (PDB). A leitura
+preguiçosa é tratar `stg` como `dev`, já que a 2.3 diz que "em dev e stg, uma
+réplica é aceitável".
+
+Só que aceitável não é obrigatório — o padrão põe um piso em produção, não um teto
+em homologação. E um `stg` modelado como `dev` produz um efeito ruim: as três
+regras que só valem em produção passam a estrear justamente no deploy de produção,
+sem nunca terem sido exercitadas.
+
+Aqui `stg` adota a postura de produção de propósito. O resultado é que cada
+ambiente responde por uma coisa diferente:
+
+| Ambiente | Réplicas | `maxUnavailable` | PDB | Serve para |
+| --- | :-: | :-: | :-: | --- |
+| `nyx-dev` | 1 | 1 | não | O mínimo que o padrão aceita |
+| `nyx-stg` | 2 | 0 | sim | Ensaiar as regras de produção antes de produção |
+| `nyx-prod` | 2 | 0 | sim | O que o padrão exige |
 
 ## Antes de abrir o PR
 

@@ -1,0 +1,17 @@
+# Configuracao nao sensivel. O que e credencial vive no Secret nyx-db, por
+# referencia (regra 3.3) — e o Secret nao esta versionado neste repositorio.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nyx-api-config
+  namespace: nyx-stg
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-stg
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+data:
+  DB_HOST: nyx-postgres
+  DB_DATABASE: kubedevnews

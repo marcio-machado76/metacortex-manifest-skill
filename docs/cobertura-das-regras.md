@@ -107,6 +107,18 @@ conserta banco.
 exatamente como o padrão as escreve. `2.5` avisa quando falta PDB num workload de
 prod com mais de uma réplica.
 
+Vale notar o que essa condicional implica para os três ambientes deste
+repositório. O conferidor não cobra nada de `nyx-stg` nessas três regras — e
+`nyx-stg` as cumpre assim mesmo, com duas réplicas, `maxUnavailable: 0` e PDB. A
+regra 2.3 estabelece um piso para produção ("uma réplica é aceitável" em dev e
+stg), não um teto para homologação, e ensaiar em stg o comportamento que só é
+obrigatório em prod é o que dá sentido a ter um stg.
+
+`nyx-dev`, no extremo oposto, fica no mínimo autorizado: uma réplica, rollout com
+folga e nenhum PDB. A ausência do PDB ali é decisão e não esquecimento — sobre um
+workload de réplica única, `minAvailable: 1` impede qualquer drenagem de nó, e o
+objeto passa a bloquear manutenção em vez de proteger contra ela.
+
 ### Segurança
 
 `3.3` é heurística e o verificador não finge o contrário: procura URL com
